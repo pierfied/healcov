@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "openmp-use-default-none"
 //
 // Created by pierfied on 10/19/19.
 //
@@ -52,8 +54,8 @@ double *build_cov(HealcovArgs args) {
             double cov_ij = 0;
             for (long k = sub_ind_i; k < sub_npix; ++k) {
                 for (long l = sub_ind_j; l < sub_npix; ++l) {
-                    double sep = acos(sub_vecs_x[i] * sub_vecs_x[j] + sub_vecs_y[i] * sub_vecs_y[j] +
-                                      sub_vecs_z[i] * sub_vecs_z[j]);
+                    double sep = acos(sub_vecs_x[k] * sub_vecs_x[l] + sub_vecs_y[k] * sub_vecs_y[l] +
+                                      sub_vecs_z[k] * sub_vecs_z[l]);
 
                     long theta_ind = (sep - theta0) / dtheta;
                     double frac_low = (sep - theta_samps[theta_ind]) / dtheta;
@@ -61,9 +63,12 @@ double *build_cov(HealcovArgs args) {
                     cov_ij += frac_low * xi_samps[theta_ind] + (1 - frac_low) * xi_samps[theta_ind + 1];
                 }
             }
+
             cov[i * npix + j] = cov_ij / (sub_npix * sub_npix);
         }
     }
 
     return cov;
 }
+
+#pragma clang diagnostic pop
