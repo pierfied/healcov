@@ -22,22 +22,22 @@ double *build_cov(HealcovArgs args) {
     const nside_dummy dummy;
     T_Healpix_Base<long> sub_base = T_Healpix_Base<long>(sub_nside, NEST, dummy);
 
-    long sub_ind = 0;
     double sub_vecs_x[npix * sub_npix];
     double sub_vecs_y[npix * sub_npix];
     double sub_vecs_z[npix * sub_npix];
 #pragma omp parallel for
     for (long i = 0; i < npix; ++i) {
+        long sub_ind0 = i * sub_npix;
         long sub_pix0 = mask_inds[i] * sub_npix;
 
-        for (long j = sub_pix0; j < sub_npix; ++j) {
-            vec3 vec_ij = sub_base.pix2vec(j);
+        for (long j = 0; j < sub_npix; ++j) {
+            vec3 vec_ij = sub_base.pix2vec(sub_pix0 + j);
+
+            long sub_ind = sub_ind0 + j;
 
             sub_vecs_x[sub_ind] = vec_ij.x;
             sub_vecs_y[sub_ind] = vec_ij.y;
             sub_vecs_z[sub_ind] = vec_ij.z;
-
-            sub_ind++;
         }
     }
 
@@ -52,10 +52,10 @@ double *build_cov(HealcovArgs args) {
             long sub_ind_j = j * sub_npix;
 
             double cov_ij = 0;
-            for (long k = sub_ind_i; k < sub_npix; ++k) {
-                for (long l = sub_ind_j; l < sub_npix; ++l) {
-                    double sep = acos(sub_vecs_x[k] * sub_vecs_x[l] + sub_vecs_y[k] * sub_vecs_y[l] +
-                                      sub_vecs_z[k] * sub_vecs_z[l]);
+            for (long k = sub_ind_i; k < sub_ind_i + sub_npix; ++k) {
+                for (long l = sub_ind_j; l < sub_ind_j + sub_npix; ++l) {
+                    double sep = acos(std::min<double>(sub_vecs_x[k] * sub_vecs_x[l] + sub_vecs_y[k] * sub_vecs_y[l] +
+                                                       sub_vecs_z[k] * sub_vecs_z[l], 1));
 
                     long theta_ind = (sep - theta0) / dtheta;
                     double frac_low = (sep - theta_samps[theta_ind]) / dtheta;
