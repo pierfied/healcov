@@ -5,8 +5,8 @@
 //
 
 #include "healcov.h"
-#include <healpix_base.h>
-#include <math.h>
+#include <healpix_cxx/healpix_base.h>
+#include <cmath>
 
 double *build_cov(HealcovArgs args) {
     long nside = args.nside;

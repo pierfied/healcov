@@ -47,8 +47,11 @@ class HealcovArgs(ctypes.Structure):
     ]
 
 
-def build_cov(cl, nside, mask, tree_depth=0, lmax=None, apply_pixwin=False, ninterp=10000, log=False, shift=None):
+def build_cov(cl, nside, mask=None, tree_depth=0, lmax=None, apply_pixwin=False, ninterp=10000, log=False, shift=None):
     tree_depth = 2 ** (tree_depth)
+
+    if mask is None:
+        mask = np.ones(hp.nside2npix(nside), dtype=bool)
 
     if lmax is not None and lmax > len(cl) - 1:
         lmax = len(cl) - 1
