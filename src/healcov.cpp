@@ -54,8 +54,9 @@ double *build_cov(HealcovArgs args) {
             double cov_ij = 0;
             for (long k = sub_ind_i; k < sub_ind_i + sub_npix; ++k) {
                 for (long l = sub_ind_j; l < sub_ind_j + sub_npix; ++l) {
-                    double sep = acos(std::min<double>(sub_vecs_x[k] * sub_vecs_x[l] + sub_vecs_y[k] * sub_vecs_y[l] +
-                                                       sub_vecs_z[k] * sub_vecs_z[l], 1));
+                    double sep = acos(std::max<double>(std::min<double>(
+                            sub_vecs_x[k] * sub_vecs_x[l] + sub_vecs_y[k] * sub_vecs_y[l] +
+                            sub_vecs_z[k] * sub_vecs_z[l], 1), -1));
 
                     long theta_ind = (sep - theta0) / dtheta;
                     double frac_low = (sep - theta_samps[theta_ind]) / dtheta;
