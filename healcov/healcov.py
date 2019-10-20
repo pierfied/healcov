@@ -52,7 +52,7 @@ def build_cov(cl, nside, mask=None, tree_depth=0, lmax=None, apply_pixwin=False,
         cl = cl[:len(pw)] * (pw ** 2)
 
     npix = int(mask.sum())
-    mask_inds = np.arange(hp.nside2npix(nside))[mask]
+    mask_inds = hp.ring2nest(nside, np.arange(hp.nside2npix(nside))[mask])
 
     thetas = np.linspace(0, np.pi, ninterp)
     xis = cl2xi_theta(cl, thetas)
