@@ -43,7 +43,7 @@ class HealcovArgs(ctypes.Structure):
         ('tree_depth', ctypes.c_long),
         ('nsamps', ctypes.c_long),
         ('theta_samps', ctypes.POINTER(ctypes.c_double)),
-        ('xi_samps', ctypes.POINTER(ctypes.c_double)),
+        ('xi_samps', ctypes.POINTER(ctypes.c_double))
     ]
 
 
@@ -84,7 +84,7 @@ def build_cov(cl, nside, mask=None, tree_depth=0, lmax=None, apply_pixwin=False,
     lib_path = os.path.join(os.path.dirname(__file__), 'libhealcov.so')
     lib = ctypes.cdll.LoadLibrary(lib_path)
 
-    cpp_build_cov = lib.build_cov()
+    cpp_build_cov = lib.build_cov
     cpp_build_cov.argtypes = [HealcovArgs]
     cpp_build_cov.restype = dptr
 
