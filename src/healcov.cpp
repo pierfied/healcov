@@ -5,8 +5,55 @@
 //
 
 #include "healcov.h"
-#include <healpix_cxx/healpix_base.h>
+#include <healpix_base.h>
 #include <cmath>
+
+int main() {
+    FILE *f;
+    f = freopen(NULL, "rb", stdin);
+    f = freopen(NULL, "wb", stdout);
+
+    int res;
+
+    long nside;
+    res = fread(&nside, sizeof(long), 1, stdin);
+
+    long npix;
+    res = fread(&npix, sizeof(long), 1, stdin);
+
+    long *mask_inds = new long[npix];
+    res = fread(mask_inds, sizeof(long), npix, stdin);
+
+    long tree_depth;
+    res = fread(&tree_depth, sizeof(long), 1, stdin);
+
+    long nsamps;
+    res = fread(&nsamps, sizeof(long), 1, stdin);
+
+    double *theta_samps = new double[nsamps];
+    res = fread(theta_samps, sizeof(double), nsamps, stdin);
+
+    double *xi_samps = new double[nsamps];
+    res = fread(xi_samps, sizeof(double), nsamps, stdin);
+
+    HealcovArgs args;
+    args.nside = nside;
+    args.npix = npix;
+    args.mask_inds = mask_inds;
+    args.tree_depth = tree_depth;
+    args.nsamps = nsamps;
+    args.theta_samps = theta_samps;
+    args.xi_samps = xi_samps;
+
+    double *cov = build_cov(args);
+
+    fwrite(cov, sizeof(double), npix * npix, stdout);
+
+    delete mask_inds;
+    delete theta_samps;
+    delete xi_samps;
+    delete cov;
+}
 
 double *build_cov(HealcovArgs args) {
     long nside = args.nside;

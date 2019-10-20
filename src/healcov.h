@@ -5,7 +5,6 @@
 #ifndef HEALCOV_HEALCOV_H
 #define HEALCOV_HEALCOV_H
 
-extern "C" {
 typedef struct {
     long nside;
     long npix;
@@ -17,6 +16,5 @@ typedef struct {
 } HealcovArgs;
 
 double *build_cov(HealcovArgs args);
-};
 
 #endif //HEALCOV_HEALCOV_H

@@ -1,6 +1,6 @@
 import numpy as np
 import healpy as hp
-import ctypes
+import subprocess
 import os
 
 
@@ -35,18 +35,6 @@ def cl2xi_theta(cl, theta):
     return xi
 
 
-class HealcovArgs(ctypes.Structure):
-    _fields_ = [
-        ('nside', ctypes.c_long),
-        ('npix', ctypes.c_long),
-        ('mask_inds', ctypes.POINTER(ctypes.c_long)),
-        ('tree_depth', ctypes.c_long),
-        ('nsamps', ctypes.c_long),
-        ('theta_samps', ctypes.POINTER(ctypes.c_double)),
-        ('xi_samps', ctypes.POINTER(ctypes.c_double))
-    ]
-
-
 def build_cov(cl, nside, mask=None, tree_depth=0, lmax=None, apply_pixwin=False, ninterp=10000, log=False, shift=None):
     tree_depth = 2 ** (tree_depth)
 
@@ -63,34 +51,30 @@ def build_cov(cl, nside, mask=None, tree_depth=0, lmax=None, apply_pixwin=False,
 
         cl = cl[:len(pw)] * (pw ** 2)
 
-    npix = mask.sum()
+    npix = int(mask.sum())
     mask_inds = np.arange(hp.nside2npix(nside))[mask]
 
     thetas = np.linspace(0, np.pi, ninterp)
     xis = cl2xi_theta(cl, thetas)
 
-    lptr = ctypes.POINTER(ctypes.c_long)
-    dptr = ctypes.POINTER(ctypes.c_double)
+    exe_path = os.path.join(os.path.dirname(__file__), 'healcov')
+    proc = subprocess.Popen(exe_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-    args = HealcovArgs()
-    args.nside = nside
-    args.npix = npix
-    args.mask_inds = mask_inds.ctypes.data_as(lptr)
-    args.tree_depth = tree_depth
-    args.nsamps = ninterp
-    args.theta_samps = thetas.ctypes.data_as(dptr)
-    args.xi_samps = xis.ctypes.data_as(dptr)
+    proc.stdin.write(nside.to_bytes(8, 'little'))
+    proc.stdin.write(npix.to_bytes(8, 'little'))
+    proc.stdin.write(mask_inds.tobytes())
+    proc.stdin.write(tree_depth.to_bytes(8, 'little'))
+    proc.stdin.write(ninterp.to_bytes(8, 'little'))
+    proc.stdin.write(thetas.tobytes())
+    proc.stdin.write(xis.tobytes())
+    proc.stdin.close()
 
-    lib_path = os.path.join(os.path.dirname(__file__), 'libhealcov.so')
-    lib = ctypes.cdll.LoadLibrary(lib_path)
+    cov = np.frombuffer(proc.stdout.read()).reshape([npix, npix])
 
-    cpp_build_cov = lib.build_cov
-    cpp_build_cov.argtypes = [HealcovArgs]
-    cpp_build_cov.restype = dptr
+    info = proc.wait()
 
-    cpp_res = cpp_build_cov(args)
-
-    cov = np.ctypeslib.as_array(cpp_res, shape=(npix, npix))
+    if info != 0:
+        raise Exception()
 
     if log is True:
         cov = np.log(cov / (shift ** 2) + 1)

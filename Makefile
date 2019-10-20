@@ -6,9 +6,9 @@ healcov:
 	cmake -Bcmake_build -H. && \
 	cd cmake_build && \
 	make && \
-	cp libhealcov.so ../healcov/libhealcov.so
+	cp healcov ../healcov/healcov
 
 .PHONY: clean
 clean:
 	rm -rf cmake_build
-	rm -rf healcov/libhealcov.so
+	rm -rf healcov/healcov
