@@ -69,9 +69,9 @@ double *build_cov(HealcovArgs args) {
     const nside_dummy dummy;
     T_Healpix_Base<long> sub_base = T_Healpix_Base<long>(sub_nside, NEST, dummy);
 
-    double sub_vecs_x[npix * sub_npix];
-    double sub_vecs_y[npix * sub_npix];
-    double sub_vecs_z[npix * sub_npix];
+    double *sub_vecs_x = new double[npix * sub_npix];
+    double *sub_vecs_y = new double[npix * sub_npix];
+    double *sub_vecs_z = new double[npix * sub_npix];
 #pragma omp parallel for
     for (long i = 0; i < npix; ++i) {
         long sub_ind0 = i * sub_npix;
@@ -115,6 +115,10 @@ double *build_cov(HealcovArgs args) {
             cov[i * npix + j] = cov_ij / (sub_npix * sub_npix);
         }
     }
+
+    delete sub_vecs_x;
+    delete sub_vecs_y;
+    delete sub_vecs_z;
 
     return cov;
 }
